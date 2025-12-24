@@ -10,12 +10,10 @@ class ConexionPostgre:
 
     def __init__(self):
         self.__conexion_base_datos = None
-        self.__nombre_tabla = None
         self.__columnas = None
-        self.__tipos = tipos_columna
-
+        self.__tipos = None
+        
         self.__inicializa_conexion()
-
 
     def activar_tabla(self, table_name):
         """
@@ -26,49 +24,51 @@ class ConexionPostgre:
         datos de cada columna quedan definidos al ejecutarse el 
         constructor. 
         """
-        self.__nombre_tabla = table_name
         self.__columnas = ['fecha', table_name + '_mensual']
+        self.__tipos = tipos_columna[table_name]
 
-
-    def crear_tabla(self):
+    def crear_tabla(self, table):
         """
-        Genera y ejecuta la sentencia para crear la tabla activa en PostgreSQL.
+        Genera y ejecuta la sentencia para crear la tabla activa en 
+        PostgreSQL.
         """
         cursor = self.__conexion_base_datos.cursor()
-        sentencia = self.__generar_sentencia_crear(self.__nombre_tabla, self.__columnas, self.__tipos)
+        sentencia = self.__generar_sentencia_crear(table)
         cursor.execute(sentencia)
         self.__conexion_base_datos.commit()
         cursor.close()
 
-    def insertar_datos(self, data): 
+    def insertar_datos(self, table, data): 
         """
         Genera y ejecuta la sentencia para insertar los datos indicados
         en la tabla activa en la base de PostgreSQL.
         """
         cursor = self.__conexion_base_datos.cursor()
-        sentencia = self.__generar_sentencia_insertar(self.__nombre_tabla, self.__columnas)
+        sentencia = self.__generar_sentencia_insertar(table)
         execute_values(cursor, sentencia, data)
         self.__conexion_base_datos.commit()
         cursor.close()
 
-    def existe_tabla(self):  
+    def existe_tabla(self, table):  
         """
         Indica si la tabla activa existe en la base de PostgreSQL. Para
         esto, primero genera y ejecuta la sentencia que indica la
         existencia de la tabla, y luego retorna respuesta.
         """
         cursor = self.__conexion_base_datos.cursor()
-        cursor.execute(f"SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = '{self.__nombre_tabla}')")
+        cursor.execute(f"SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = '{table}')")
         existe = cursor.fetchone()[0]
+        self.__conexion_base_datos.commit()
+        cursor.close()
         return existe
 
-    def obtener_ultima_fecha_actualizacion(self):
+    def obtener_ultima_fecha_actualizacion(self, table):
         """
         Determina cual es la última fecha de la cual se tiene registro
         en la tabla activa.
         """
         cursor = self.__conexion_base_datos.cursor()
-        cursor.execute(f"SELECT MAX(\"fecha\") FROM {self.__nombre_tabla}")
+        cursor.execute(f"SELECT MAX(\"fecha\") FROM {table}")
         try:
             ultima_fecha = cursor.fetchone()[0]
         except:
@@ -80,7 +80,7 @@ class ConexionPostgre:
     def cierre_final(self):
         """Cierra la conexión establecida con PostgreSQL."""
         self.__conexion_base_datos.close()
-
+      
     def __inicializa_conexion(self):
         """
         Genera la conexión con la base de datos indicada en PostgreSQL.
@@ -98,25 +98,23 @@ class ConexionPostgre:
             password = credenciales[3],
             )   
         self.__conexion_base_datos = conexion
-
-    def __generar_sentencia_crear(table_name, columns, types): 
+ 
+    def __generar_sentencia_crear(self, table): 
         """
         Genera la sentencia SQL que permite crear la tabla según la 
         información de la tabla activa. 
         """  
-        columnas_sql = ", ".join(f"{columns[i]} {(types[i])}" for i in range(len(columns)))
-        sentencia_crear = f"CREATE TABLE IF NOT EXISTS {table_name} ({columnas_sql});"
+        columnas = self.__columnas
+        tipos = self.__tipos
+        columnas_sql = ", ".join(f"{columnas[i]} {(tipos[i])}" for i in range(len(columnas)))
+        sentencia_crear = f"CREATE TABLE IF NOT EXISTS {table} ({columnas_sql});"
         return sentencia_crear
 
-    @staticmethod 
-    def __generar_sentencia_insertar(table_name, columns):
+    def __generar_sentencia_insertar(self, table):
         """
         Genera la sentencia SQL que permite insertar datos a la tabla
         activa, según la infoprmación de ésta.
         """  
-        sentencia_insertar = f"INSERT INTO {table_name} ({','.join(f"{column}" for column in columns)}) VALUES %s"
+        columnas = self.__columnas
+        sentencia_insertar = f"INSERT INTO {table} ({','.join(f"{columna}" for columna in columnas)}) VALUES %s"
         return sentencia_insertar
-
-    @property
-    def nombre_tabla(self):
-        return self.__nombre_tabla

@@ -16,15 +16,18 @@ class ConexionBCentral():
         y para el periodo comprendido según las fechas indicadas.
         Luego de obtener la información, TRANSFORMA los datos
         """
-        head = tabla
-        df_consulta = self._bc_siete.cuadro(
-        series = series_banco_central[tabla],
-        nombres = [head],
-        desde = start_date,
-        hasta = end_date,
-        observado = {head:np.mean} 
-        )
-        self.__consulta = df_consulta.dropna()
+        consultas = []
+        for serie in series_banco_central[tabla]:
+            head = tabla
+            df_consulta = self._bc_siete.cuadro(
+            series = serie,
+            nombres = [head],
+            desde = start_date,
+            hasta = end_date,
+            observado = {head:np.mean}
+            )
+            consultas.append(df_consulta)
+        self.__consulta = consultas
 
     @property
     def consulta(self):

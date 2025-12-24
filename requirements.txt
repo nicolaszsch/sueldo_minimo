@@ -1,2 +1,4 @@
 bcchapi
 psycopg2
+openpyxl
+xlsxwriter

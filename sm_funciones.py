@@ -1,7 +1,8 @@
 import pandas as pd
 from datetime import datetime
+import os
 
-def leer_csv(data_dir):
+def leer_csv(file_name):
     """
     Lee y retorna la información contenida en el CSV que se encuentra 
     en data_dir.
@@ -14,24 +15,63 @@ def leer_csv(data_dir):
     data (pd.DataFrame): Datos con la información contenida en el
         archivo CSV.
     """
-    data = pd.read_csv(data_dir, header=0, parse_dates=False, index_col=0,
+    data = pd.read_csv(file_name, header=0, parse_dates=False, index_col=0,
                     sep=',')
     return data
 
+def obenter_datos_txt(file_name):
+    filas = leer_txt(file_name)
+    datos = []
+    fila_headers = True
+    for fila in filas:
+        if fila_headers:
+            fila_headers = False
+        else:
+            datos.append(_separar_fila_txt(fila))
+    return datos
 
-def leer_txt(location):
+def leer_txt(file_name):
     """
     Retorna una lista en la que sus elementos son las líneas del 
     archivo de texto que se indica
     """
-    read_datos = open(location, 'r')
+    read_datos = open(file_name, 'r')
     datos = read_datos.readlines()
     read_datos.close()
     return datos
 
-def transformar_fecha(text):
+def _separar_fila_txt(row):
+    ano = int(row[:4])
+    mes = int(row[5:7])
+    dia = int(row[8:10])
+    fecha = datetime(ano, mes, dia)
+    valor_texto = row[11:]
+    if valor_texto.find(".") == -1:
+        valor = int(valor_texto) 
+    else:
+        valor = float(valor_texto)
+    return [fecha, valor]
+
+def leer_txt_ultima_fila(file_name):
+    """
+    Retorna una lista en la que sus elementos son las líneas del 
+    archivo de texto que se indica
+    """
+    read_datos = open(file_name, 'r')
+    datos = read_datos.readlines()
+    read_datos.close()
+    return datos
+
+def existe_txt(file_name):
+    existe = False
+    if os.path.exists(file_name):
+        existe = True
+    return existe
+
+def transformar_fecha_csv(date_text):
     """ Transforma el string con la fecha en un datetime"""
-    ano = int(text[:4])
-    mes = int(text[5:7])
-    dia = int(text[8:])
+    ano = int(date_text[:4])
+    mes = int(date_text[5:7])
+    dia = int(date_text[8:])
     return datetime(ano, mes, dia)
+
