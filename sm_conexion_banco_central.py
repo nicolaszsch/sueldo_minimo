@@ -1,6 +1,5 @@
-import bcchapi
 import numpy as np
-import pandas as pd
+import bcchapi
 
 from sm_configuracion import direccion_credenciales_banco_central, series_banco_central
 

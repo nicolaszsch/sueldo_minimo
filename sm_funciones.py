@@ -1,6 +1,7 @@
-import pandas as pd
-from datetime import datetime
 import os
+from datetime import datetime
+import pandas as pd
+
 
 def leer_csv(file_name):
     """
@@ -19,6 +20,26 @@ def leer_csv(file_name):
                     sep=',')
     return data
 
+
+def transformar_fecha_csv(date_text):
+    """ Transforma el string con la fecha en un datetime"""
+    ano = int(date_text[:4])
+    mes = int(date_text[5:7])
+    dia = int(date_text[8:])
+    return datetime(ano, mes, dia)
+
+
+def leer_txt(file_name):
+    """
+    Retorna una lista en la que sus elementos son las líneas del 
+    archivo de texto que se indica
+    """
+    read_datos = open(file_name, 'r')
+    datos = read_datos.readlines()
+    read_datos.close()
+    return datos
+
+
 def obenter_datos_txt(file_name):
     filas = leer_txt(file_name)
     datos = []
@@ -30,15 +51,6 @@ def obenter_datos_txt(file_name):
             datos.append(_separar_fila_txt(fila))
     return datos
 
-def leer_txt(file_name):
-    """
-    Retorna una lista en la que sus elementos son las líneas del 
-    archivo de texto que se indica
-    """
-    read_datos = open(file_name, 'r')
-    datos = read_datos.readlines()
-    read_datos.close()
-    return datos
 
 def _separar_fila_txt(row):
     ano = int(row[:4])
@@ -52,15 +64,6 @@ def _separar_fila_txt(row):
         valor = float(valor_texto)
     return [fecha, valor]
 
-def leer_txt_ultima_fila(file_name):
-    """
-    Retorna una lista en la que sus elementos son las líneas del 
-    archivo de texto que se indica
-    """
-    read_datos = open(file_name, 'r')
-    datos = read_datos.readlines()
-    read_datos.close()
-    return datos
 
 def existe_txt(file_name):
     existe = False
@@ -68,10 +71,39 @@ def existe_txt(file_name):
         existe = True
     return existe
 
-def transformar_fecha_csv(date_text):
-    """ Transforma el string con la fecha en un datetime"""
-    ano = int(date_text[:4])
-    mes = int(date_text[5:7])
-    dia = int(date_text[8:])
-    return datetime(ano, mes, dia)
 
+def registro_de_fecha(date, information):
+    registro_identificado = None
+    for registro in information:    
+        if date == registro[0]:
+            registro_identificado = registro
+    return registro_identificado
+
+
+def expandir_segun_otra_serie(original_information, comparison_information):
+    fechas_originales = []
+    for registro in original_information:
+        fechas_originales.append(registro[0])
+
+    nueva_informacion = []
+    for i in range(len(comparison_information)):
+        if comparison_information[i][0] in fechas_originales:
+            nueva_informacion.append(registro_de_fecha(comparison_information[i][0], original_information))
+        else:
+            if i == 0:
+                nueva_informacion.append([comparison_information[i][0], original_information[0][1]])
+            else:
+                nueva_informacion.append([comparison_information[i][0], nueva_informacion[i-1][1]])
+    return nueva_informacion
+        
+
+def comprimir_segun_otra_serie(original_information, comparison_information):
+    fechas_comparacion = []
+    for registro in comparison_information:
+        fechas_comparacion.append(registro[0])
+
+    nueva_informacion = []
+    for registro in original_information:
+        if registro[0] in fechas_comparacion:
+            nueva_informacion.append(registro)
+    return nueva_informacion
