@@ -6,14 +6,16 @@ from sm_configuracion import direccion_credenciales_banco_central, series_banco_
 class ConexionBCentral():
 
     def __init__(self):
+        """Inicializa una instancia de la clase ConexionBCentral."""
         self._bc_siete = bcchapi.Siete(file = direccion_credenciales_banco_central)
         self.__consulta = None
 
     def consultar(self, tabla, start_date, end_date): 
         """
-        Genera la conslta para obtener los datos para la tabla indicada,
-        y para el periodo comprendido según las fechas indicadas.
-        Luego de obtener la información, TRANSFORMA los datos
+        Genera la/s consulta/s a la API del Banco Central, como 
+        DataFrame, para obtener los datos para la tabla indicada, y
+        para el periodo comprendido según las fechas indicadas. Luego
+        de obtener la información, la asocia al atributo consulta.
         """
         consultas = []
         for serie in series_banco_central[tabla]:
@@ -30,5 +32,5 @@ class ConexionBCentral():
 
     @property
     def consulta(self):
-        """ Método que retorna el atributo consulta"""
+        """Método que retorna el atributo consulta"""
         return self.__consulta

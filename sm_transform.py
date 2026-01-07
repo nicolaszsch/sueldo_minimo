@@ -2,6 +2,10 @@ from sm_configuracion import tablas_directas, tablas_compuestas
 from sm_funciones import registro_de_fecha
 
 def transformar(table, data):
+    """
+    Gestiona las transformaciones que se deben realizar a los datos que
+    se utilizan para la generación de la tabla que se busca generar.
+    """
     if table == tablas_directas[0]:                      #Sueldo Mínimo
         datos = _generar_lista(table, data)
     elif table == tablas_directas[1]:                    #IPC
@@ -19,8 +23,10 @@ def transformar(table, data):
 
 def _generar_lista(table, query):
     """
-    Transforma la información obtenida de la API del Banco Central,
-    que es un Data Frame, en una lista.
+    Transforma la información de un DataFrame, que en particular es
+    obtenido de una consulta a la API del Banco Central, en una lista.
+    El índice, que es una fecha 'datetime', se ajusta para que solo 
+    quede la información respecto a la fecha.
     """
     lista = []
     for indice in query.index:
@@ -32,8 +38,9 @@ def _generar_lista(table, query):
 
 def _lista_fecha_ajustada(information):
     """
-    Transforma la información obtenida de la API del Banco Central,
-    que es un Data Frame, en una lista.
+    Ajusta la información de las listas de la que proviene la
+    información obtenida anteriormente, en particular de las tablas
+    compuestas (sueldo_minimo_real).
     """
     lista = []
     for registro in information:
@@ -41,7 +48,16 @@ def _lista_fecha_ajustada(information):
     return lista
 
 def _generar_tabla_division(numerators, divisors):
-    "Validar que las fechas calcen"
+    """
+    A partir de listas que contienen valores (segunda posición del 
+    registro), además de la fecha (segunda posición) a la que
+    corresponde cada valor, se genera una nueva lista con la división
+    entre los valores de cada lista para cada fecha correspondiente. La
+    división que se genera es de los valores de la lista numerators
+    dividido por los valores de la lista divisors. Esta función se
+    utiliza para generar lso valores del "Sueldo Mínimo Real" (Sueldo
+    Mínimo Nominal respecto al IPC).
+    """
     tasas = []
     for i in range(len(divisors)):
         tasas.append([divisors[i][0], registro_de_fecha(divisors[i][0],numerators)[1]/divisors[i][1]])
